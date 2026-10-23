@@ -76,7 +76,8 @@
       d.innerHTML = (it.url ? '<img alt="" src="' + it.url + '">' : '<div style="height:96px;display:flex;align-items:center;justify-content:center;color:#999">JSON</div>') +
         '<div class="info"><div class="nome" title="' + esc(it.nome) + '">' + esc(it.nome) + '</div>' +
         '<span class="status ' + it.status + '">' + rot + '</span>' +
-        (it.erro ? '<div class="erro-msg">' + esc(it.erro) + '</div>' : "") + '</div>' +
+        (it.erro ? '<div class="erro-msg">' + esc(it.erro) + '</div>' : "") +
+        (it.status === "lendo" ? '<div class="barra mini-barra"><div class="barra-fill" data-prog="' + it.id + '" style="width:' + Math.round(fracaoItem(it) * 100) + '%"></div></div>' : "") + '</div>' +
         '<button class="pequeno x" title="Remover">×</button>';
       d.querySelector(".x").onclick = function (ev) { ev.stopPropagation(); remover(it.id); };
       box.appendChild(d);
@@ -92,37 +93,92 @@
   function lerTodos() {
     var prov = provedorAtual();
     var chave = $("#chave").value.trim();
-    if (!chave) { $("#msgLeitura").textContent = "Informe a " + prov.rotuloChave.toLowerCase() + " para ler os prints."; $("#chave").focus(); return; }
+    if (!chave) { $("#msgLeitura").textContent = "Informe a " + prov.rotuloChave.toLowerCase() + " para ler os prints."; $("#chave").focus(); return Promise.resolve(false); }
     salvarLocal("gppt_chave_" + prov.id, $("#lembrarChave").checked ? chave : "");
     if (prov.id === "claude") salvarLocal("gppt_chave", "");
     salvarLocal("gppt_provedor", prov.id);
     salvarLocal("gppt_modelo_" + prov.id, $("#modelo").value);
     var modelo = $("#modelo").value;
     var fila = itens.filter(function (i) { return i.file && (i.status === "aguardando" || i.status === "erro"); });
-    if (!fila.length) return;
-    $("#btnLer").disabled = true;
-    $("#msgLeitura").textContent = "Lendo " + fila.length + " print(s)…";
+    if (!fila.length) return Promise.resolve(true);
+    $("#btnLer").disabled = true; $("#btnLerGerar").disabled = true;
+    $("#msgLeitura").textContent = "";
+    iniciarProgresso(fila);
     var ativos = 0, idx = 0, feitos = 0;
     return new Promise(function (fim) {
       function proximo() {
         if (feitos === fila.length) { fim(); return; }
         while (ativos < (C.LEITURAS_SIMULTANEAS || 3) && idx < fila.length) {
           (function (it) {
-            ativos++; it.status = "lendo"; it.erro = ""; renderMiniaturas();
+            ativos++; it.status = "lendo"; it.erro = ""; it.inicio = Date.now(); renderMiniaturas();
             Extrator.lerPrint(it.file, { provedor: prov.id, chave: chave, modelo: modelo }).then(function (f) {
               it.ficha = f; it.status = "pronto";
             }).catch(function (e) {
               it.status = "erro"; it.erro = traduzErro(e);
             }).then(function () {
-              ativos--; feitos++; renderMiniaturas(); renderFichas(); atualizarBotoes();
-              $("#msgLeitura").textContent = feitos + " de " + fila.length + " lido(s).";
+              ativos--; feitos++; it.inicio = null; renderMiniaturas(); renderFichas(); atualizarBotoes();
               proximo();
             });
           })(fila[idx++]);
         }
       }
       proximo();
-    }).then(function () { atualizarBotoes(); });
+    }).then(function () {
+      pararProgresso(fila);
+      atualizarBotoes();
+      return true;
+    });
+  }
+
+  // ---------- Barra de progresso ----------
+  // A API não informa o andamento de cada leitura, então a barra estima pelo tempo
+  // decorrido (curva que se aproxima de 95% e salta para 100% quando a resposta chega).
+  var progresso = { fila: null, timer: null, etapa: "" };
+  var TEMPO_TIPICO_S = 30;
+  function fracaoItem(it) {
+    if (it.status === "pronto" || it.status === "erro") return 1;
+    if (it.status === "lendo" && it.inicio) {
+      var t = (Date.now() - it.inicio) / 1000;
+      return 0.95 * (1 - Math.exp(-t / TEMPO_TIPICO_S));
+    }
+    return 0;
+  }
+  function desenharProgresso() {
+    var fila = progresso.fila; if (!fila) return;
+    var soma = 0, feitos = 0, erros = 0;
+    fila.forEach(function (it) {
+      soma += fracaoItem(it);
+      if (it.status === "pronto") feitos++;
+      if (it.status === "erro") erros++;
+      var el = document.querySelector('[data-prog="' + it.id + '"]');
+      if (el) el.style.width = Math.round(fracaoItem(it) * 100) + "%";
+    });
+    var pct = Math.round(soma / fila.length * 100);
+    $("#progressoFill").style.width = pct + "%";
+    $("#progresso").setAttribute("aria-valuenow", pct);
+    var txt = progresso.etapa || ("Lendo prints… " + (feitos + erros) + " de " + fila.length + (erros ? " (" + erros + " com erro)" : ""));
+    $("#progressoTexto").textContent = txt;
+    $("#progressoPct").textContent = pct + "%";
+  }
+  function iniciarProgresso(fila) {
+    progresso.fila = fila; progresso.etapa = "";
+    $("#progressoBox").classList.remove("oculto");
+    $("#progresso").classList.remove("concluido");
+    clearInterval(progresso.timer);
+    progresso.timer = setInterval(desenharProgresso, 250);
+    desenharProgresso();
+  }
+  function pararProgresso(fila) {
+    clearInterval(progresso.timer); progresso.timer = null;
+    desenharProgresso();
+    var erros = fila.filter(function (i) { return i.status === "erro"; }).length;
+    var ok = fila.length - erros;
+    $("#progresso").classList.add("concluido");
+    $("#progressoTexto").textContent = ok + " de " + fila.length + " print(s) lido(s)" + (erros ? " · " + erros + " com erro (veja na miniatura)" : "");
+  }
+  function etapaProgresso(txt) {
+    $("#progressoBox").classList.remove("oculto");
+    progresso.etapa = txt; $("#progressoTexto").textContent = txt;
   }
 
   function traduzErro(e) {
@@ -305,7 +361,9 @@
     var aguardando = itens.filter(function (i) { return i.file && (i.status === "aguardando" || i.status === "erro"); }).length;
     var lendo = itens.some(function (i) { return i.status === "lendo"; });
     $("#btnLer").disabled = !aguardando || lendo;
-    $("#btnLer").textContent = aguardando ? "Ler " + aguardando + " print(s)" : "Ler prints";
+    $("#btnLer").textContent = aguardando ? "Só ler " + aguardando + " print(s)" : "Só ler";
+    $("#btnLerGerar").disabled = lendo || (!aguardando && !fichasProntas().length);
+    $("#btnLerGerar").textContent = aguardando ? "Ler e gerar PPT" : "Gerar PPT";
     var n = fichasProntas().length;
     $("#btnGerar").disabled = !n || lendo;
     $("#btnExportar").disabled = !n;
@@ -334,8 +392,25 @@
     });
     var nome = "Saude de Frota" + (forn.nome ? " - " + forn.nome : "") + " - " + (($("#periodo").value.trim() || periodoPadrao()).replace(/\//g, "-"));
     $("#btnGerar").disabled = true; $("#btnGerar").textContent = "Gerando…";
-    pres.writeFile({ fileName: nome + ".pptx" }).catch(function (e) { alert("Erro ao gerar o PPT: " + e.message); })
-      .then(function () { $("#btnGerar").textContent = "Gerar PPT"; atualizarBotoes(); });
+    return pres.writeFile({ fileName: nome + ".pptx" }).then(function () { return true; })
+      .catch(function (e) { alert("Erro ao gerar o PPT: " + e.message); return false; })
+      .then(function (ok) { $("#btnGerar").textContent = "Gerar PPT"; atualizarBotoes(); return ok; });
+  }
+
+  // um clique: lê o que falta e já baixa o PPT
+  function lerEGerar() {
+    var pendentes = itens.filter(function (i) { return i.file && (i.status === "aguardando" || i.status === "erro"); }).length;
+    return lerTodos().then(function (seguiu) {
+      if (seguiu === false) return;
+      var prontas = fichasProntas().length;
+      if (!prontas) { etapaProgresso("Nenhum print foi lido; nada para gerar."); return; }
+      etapaProgresso("Gerando o PPT…");
+      return gerar().then(function (ok) {
+        var erros = itens.filter(function (i) { return i.status === "erro"; }).length;
+        if (ok) etapaProgresso("PPT baixado com " + prontas + " print(s)" + (erros ? ". " + erros + " print(s) com erro ficaram de fora." : ".") +
+          (pendentes ? " Os dados lidos estão abaixo para conferência." : ""));
+      });
+    });
   }
 
   function baixar(nome, texto) {
@@ -372,6 +447,7 @@
     });
 
     $("#btnLer").onclick = lerTodos;
+    $("#btnLerGerar").onclick = lerEGerar;
     $("#btnGerar").onclick = gerar;
     $("#btnExportar").onclick = function () {
       baixar("dados-prints.json", JSON.stringify(fichasProntas().map(function (i) { return limparFicha(i.ficha); }), null, 1));

@@ -10,9 +10,10 @@ O PPT sai com **gráficos e tabelas nativos do PowerPoint** (editáveis, com os 
    - Claude: https://console.anthropic.com/settings/keys
    - GPT (OpenAI): https://platform.openai.com/api-keys
 2. **Arraste os prints** do BI para a área indicada (ou cole com Ctrl+V). Um print por indicador: DF e MTBF de cada frota.
-3. Clique em **Ler prints**. Cada print é lido pela IA escolhida, que devolve título, gráfico, mapa de calor (valores e cores) e nota.
+3. Clique em **Ler e gerar PPT**: cada print é lido pela IA escolhida (título, gráfico, mapa de calor com valores e cores, nota) e o PPT já é baixado no fim. Uma barra mostra o andamento da leitura.
+   Se preferir conferir antes, use **Só ler**.
 4. **Confira os dados** na tela. Dá para corrigir qualquer número e repintar células do mapa de calor com os pincéis de cor. Os pontos que merecem atenção aparecem em amarelo (ex.: tabela com barra de rolagem, gráfico divergente da linha Total).
-5. Clique em **Gerar PPT** para baixar o arquivo.
+5. Depois de qualquer correção, clique em **Gerar PPT** para baixar o arquivo de novo.
 
 O PPT é montado só com o que estiver nos prints recebidos. Prints da mesma frota são agrupados (DF antes de MTBF). Frotas com até 10 equipamentos ganham um slide com DF e MTBF juntos, como no modelo; frotas maiores ganham um slide por indicador, para a tabela caber legível. Isso pode ser trocado em **Layout dos slides**.
 
@@ -66,3 +67,5 @@ O formato de cada print lido ("ficha") está descrito no topo de `js/gerador.js`
 - A leitura por imagem pode errar dígitos, principalmente em prints pequenos ou borrados. Prints em resolução maior (tela cheia, sem zoom reduzido) dão leituras melhores. Sempre confira a etapa 3.
 - Linhas escondidas pela barra de rolagem da tabela do BI não aparecem no print, então não entram no PPT. A ferramenta avisa quando percebe a barra.
 - A série "Últ. 12 M" do gráfico do BI não é reproduzida (o modelo não usa).
+- A barra de progresso é uma estimativa pelo tempo: a API não informa o andamento de cada leitura, só avisa quando termina.
+- As colunas TAG e HOR são dimensionadas pelo maior texto de cada uma para nunca quebrar linha; se não couber, a fonte da tabela diminui.

@@ -225,15 +225,69 @@
   }
 
   // ---------- Mapa de calor (tabela nativa) ----------
+  // largura aproximada de um texto em polegadas (métricas de fonte sem serifa tipo Arial, com folga)
+  function larguraTexto(txt, fs, negrito, folga) {
+    var em = 0;
+    String(txt).split("").forEach(function (ch) {
+      if (/[0-9]/.test(ch)) em += 0.556;
+      else if (/[MW]/.test(ch)) em += 0.86;
+      else if (/[IJ]/.test(ch)) em += 0.30;
+      else if (/[A-Z]/.test(ch)) em += 0.68;
+      else if (/[mw]/.test(ch)) em += 0.80;
+      else if (/[ijlft]/.test(ch)) em += 0.28;
+      else if (/[a-zà-ú]/.test(ch)) em += 0.53;
+      else if (ch === "%") em += 0.89;
+      else if (/[.,:;'\/| ]/.test(ch)) em += 0.29;
+      else em += 0.45;
+    });
+    return em * (fs / 72) * (negrito ? 1.07 : 1) * (folga || 1.12);
+  }
+
+  var PAD_CELULA = 0.09; // margens internas + folga, em polegadas
+
+  // calcula fonte e larguras para que TAG e HOR nunca quebrem e os valores caibam
+  function medirTabela(cols, linhas, f, box, fsInicial) {
+    var tags = ["TAG"].concat(linhas.map(function (l) { return String(l.tag || ""); }));
+    var hors = ["HOR"].concat(linhas.map(function (l) { return fmtHorimetro(l.horimetro); }));
+    var fs = fsInicial;
+    for (; fs >= 5; fs -= 0.5) {
+      var wTag = Math.max.apply(null, tags.map(function (x) { return larguraTexto(x, fs, true); })) + PAD_CELULA;
+      var wHor = Math.max.apply(null, hors.map(function (x) { return larguraTexto(x, fs, true); })) + PAD_CELULA;
+      // valores: maior número da coluna; cabeçalho pode quebrar em "Nov/" + "25"
+      var wVal = Math.max.apply(null, cols.map(function (c, i) {
+        var partes = String(c).split("/").map(function (p, k, arr) { return k < arr.length - 1 ? p + "/" : p; });
+        var cab = Math.max.apply(null, partes.map(function (p) { return larguraTexto(p, fs, true, 1.04); }));
+        var vals = linhas.map(function (l) { return larguraTexto(fmtValor((l.valores || [])[i], f), fs, true, 1.04); });
+        return Math.max.apply(null, [cab].concat(vals));
+      }).concat([0])) + PAD_CELULA * 0.75;
+      if (wTag + wHor + wVal * cols.length <= box.w) {
+        var sobra = box.w - wTag - wHor - wVal * cols.length;
+        // a sobra vai quase toda para os valores; TAG e HOR ganham um pouco de respiro
+        var extraTH = Math.min(sobra * 0.2, 0.25);
+        wTag += extraTH / 2; wHor += extraTH / 2;
+        var wCol = cols.length ? (box.w - wTag - wHor) / cols.length : 0;
+        return { fs: fs, colW: [wTag, wHor].concat(cols.map(function () { return wCol; })) };
+      }
+    }
+    // último recurso: fonte mínima, tudo proporcional
+    var wT = larguraTexto(tags.reduce(function (a, b) { return a.length > b.length ? a : b; }), 5, true) + PAD_CELULA;
+    var wH = larguraTexto(hors.reduce(function (a, b) { return a.length > b.length ? a : b; }), 5, true) + PAD_CELULA;
+    var wc = (box.w - wT - wH) / Math.max(1, cols.length);
+    return { fs: 5, colW: [wT, wH].concat(cols.map(function () { return wc; })) };
+  }
+
   function addTabela(slide, pres, E, f, box) {
     var t = f.tabela || { colunas: [], linhas: [] };
     var cols = t.colunas || [];
     var linhas = t.linhas || [];
     var nLin = linhas.length + 1;
     var hLin = Math.min(0.27, box.h / nLin);
-    var fs = Math.max(6, Math.min(9.5, Math.round(hLin * 72 * 0.62 * 2) / 2));
+    var fsIni = Math.max(6, Math.min(9.5, Math.round(hLin * 72 * 0.62 * 2) / 2));
+    if (box.fsMax) fsIni = Math.min(fsIni, box.fsMax);
+    var medida = medirTabela(cols, linhas, f, box, fsIni);
+    var fs = medida.fs;
     var borda = { type: "dash", pt: 0.25, color: "808080" };
-    var base = { fontFace: E.fonte, fontSize: fs, align: "center", valign: "middle", margin: 0.01, border: [borda, borda, borda, borda] };
+    var base = { fontFace: E.fonte, fontSize: fs, align: "center", valign: "middle", margin: 0.02, border: [borda, borda, borda, borda] };
 
     var cab = ["TAG", "HOR"].concat(cols).map(function (c) {
       return { text: String(c), options: Object.assign({}, base, { bold: true, color: "FFFFFF", fill: { color: E.cores.primaria } }) };
@@ -256,10 +310,7 @@
       rows.push(r);
     });
 
-    // larguras: TAG e HOR mais largas, demais iguais
-    var wTag = box.w * 0.095, wHor = box.w * 0.08;
-    var wCol = (box.w - wTag - wHor) / Math.max(1, cols.length);
-    var colW = [wTag, wHor].concat(cols.map(function () { return wCol; }));
+    var colW = medida.colW;
     slide.addTable(rows, { x: box.x, y: box.y, w: box.w, colW: colW, rowH: hLin, autoPage: false, objectName: "Mapa de calor " + (f.indicador || "") });
     return hLin * nLin;
   }
@@ -331,10 +382,17 @@
     moldura(pres, slide, E, base, base.qtd_equipamentos ? base.qtd_equipamentos + " equipamentos" : "");
     var par = [fDF, fMT].filter(Boolean);
     var y0 = 1.42, hBloco = 2.0, gap = 0.1;
+    // mesma fonte nas duas tabelas do slide: a menor que couber em ambas
+    var boxTab = { w: 6.72, h: hBloco - 0.1 };
+    var fsComum = Math.min.apply(null, par.map(function (f) {
+      var t = f.tabela || { colunas: [], linhas: [] };
+      var hL = Math.min(0.27, boxTab.h / ((t.linhas || []).length + 1));
+      return medirTabela(t.colunas || [], t.linhas || [], f, boxTab, Math.max(6, Math.min(9.5, Math.round(hL * 72 * 0.62 * 2) / 2))).fs;
+    }));
     par.forEach(function (f, i) {
       var y = y0 + i * (hBloco + gap);
       cardGrafico(slide, pres, E, f, { x: 0.39, y: y, w: 5.85, h: hBloco, rotacionar: false });
-      addTabela(slide, pres, E, f, { x: 6.45, y: y + 0.05, w: 6.72, h: hBloco - 0.1 });
+      addTabela(slide, pres, E, f, { x: 6.45, y: y + 0.05, w: 6.72, h: hBloco - 0.1, fsMax: fsComum });
     });
     // nota única, sem repetir itens iguais
     var itens = [], vistos = {}, dest = [];
