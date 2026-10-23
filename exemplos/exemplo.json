@@ -1,0 +1,776 @@
+[
+ {
+  "titulo": "Performance - Frota EX100 Mina Exemplo - 6 equipamentos.",
+  "cabecalho": "Diretoria de Engenharia | Mineração, Pelotização e Processo",
+  "frota": "EX100",
+  "local": "Mina Exemplo",
+  "qtd_equipamentos": 6,
+  "indicador": "DF",
+  "indicador_titulo": "Disponibilidade Física (%)",
+  "unidade": "%",
+  "grafico": {
+   "anos": [
+    {
+     "rotulo": "2024",
+     "valor": 83
+    },
+    {
+     "rotulo": "2025",
+     "valor": 84
+    }
+   ],
+   "meses": [
+    {
+     "rotulo": "Nov/25",
+     "realizado": 86,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Dez/25",
+     "realizado": 86,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Jan/26",
+     "realizado": 85,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Fev/26",
+     "realizado": 82,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Mar/26",
+     "realizado": 83,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Abr/26",
+     "realizado": 85,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Mai/26",
+     "realizado": 86,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Jun/26",
+     "realizado": 85,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Jul/26",
+     "realizado": 85,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Ago/26",
+     "realizado": 85,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Set/26",
+     "realizado": 84,
+     "orcado": 85
+    },
+    {
+     "rotulo": "Out/26",
+     "realizado": 86,
+     "orcado": 85
+    }
+   ],
+   "resumo": [
+    {
+     "rotulo": "YTD 26",
+     "valor": 84,
+     "tipo": "realizado"
+    },
+    {
+     "rotulo": "Acum. 12M",
+     "valor": 85,
+     "tipo": "realizado"
+    },
+    {
+     "rotulo": "ORC",
+     "valor": 85,
+     "tipo": "orcado"
+    },
+    {
+     "rotulo": "RT",
+     "valor": 88,
+     "tipo": "rt"
+    }
+   ]
+  },
+  "tabela": {
+   "colunas": [
+    "Nov/25",
+    "Dez/25",
+    "Jan/26",
+    "Fev/26",
+    "Mar/26",
+    "Abr/26",
+    "Mai/26",
+    "Jun/26",
+    "Jul/26",
+    "Ago/26",
+    "Set/26",
+    "Out/26",
+    "12M",
+    "YTD"
+   ],
+   "linhas": [
+    {
+     "tag": "EX101",
+     "horimetro": 39821,
+     "valores": [
+      82,
+      88,
+      82,
+      82,
+      77,
+      83,
+      92,
+      87,
+      91,
+      86,
+      87,
+      85,
+      85,
+      85
+     ],
+     "cores": [
+      "y",
+      "g",
+      "y",
+      "y",
+      "r",
+      "y",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g"
+     ]
+    },
+    {
+     "tag": "EX102",
+     "horimetro": 47434,
+     "valores": [
+      92,
+      87,
+      93,
+      81,
+      82,
+      83,
+      82,
+      83,
+      86,
+      93,
+      89,
+      89,
+      87,
+      86
+     ],
+     "cores": [
+      "g",
+      "g",
+      "g",
+      "y",
+      "y",
+      "y",
+      "y",
+      "y",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g"
+     ]
+    },
+    {
+     "tag": "EX103",
+     "horimetro": 40022,
+     "valores": [
+      88,
+      88,
+      86,
+      80,
+      75,
+      79,
+      78,
+      90,
+      86,
+      85,
+      87,
+      94,
+      85,
+      84
+     ],
+     "cores": [
+      "g",
+      "g",
+      "g",
+      "r",
+      "r",
+      "r",
+      "r",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "y"
+     ]
+    },
+    {
+     "tag": "EX104",
+     "horimetro": 51908,
+     "valores": [
+      85,
+      76,
+      90,
+      81,
+      84,
+      88,
+      85,
+      81,
+      81,
+      92,
+      80,
+      90,
+      84,
+      85
+     ],
+     "cores": [
+      "g",
+      "r",
+      "g",
+      "y",
+      "y",
+      "g",
+      "g",
+      "y",
+      "y",
+      "g",
+      "r",
+      "g",
+      "y",
+      "g"
+     ]
+    },
+    {
+     "tag": "EX105",
+     "horimetro": 57566,
+     "valores": [
+      87,
+      84,
+      74,
+      90,
+      89,
+      91,
+      94,
+      87,
+      85,
+      75,
+      88,
+      80,
+      85,
+      85
+     ],
+     "cores": [
+      "g",
+      "y",
+      "r",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "r",
+      "g",
+      "r",
+      "g",
+      "g"
+     ]
+    },
+    {
+     "tag": "EX106",
+     "horimetro": 41205,
+     "valores": [
+      79,
+      91,
+      85,
+      81,
+      89,
+      87,
+      83,
+      82,
+      83,
+      78,
+      75,
+      79,
+      83,
+      82
+     ],
+     "cores": [
+      "r",
+      "g",
+      "g",
+      "y",
+      "g",
+      "g",
+      "y",
+      "y",
+      "y",
+      "r",
+      "r",
+      "r",
+      "y",
+      "y"
+     ]
+    },
+    {
+     "tag": "Total",
+     "horimetro": 57566,
+     "valores": [
+      86,
+      86,
+      85,
+      82,
+      83,
+      85,
+      86,
+      85,
+      85,
+      85,
+      84,
+      86,
+      85,
+      84
+     ],
+     "cores": [
+      "g",
+      "g",
+      "g",
+      "y",
+      "y",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "y",
+      "g",
+      "g",
+      "y"
+     ]
+    }
+   ]
+  },
+  "nota": {
+   "itens": [
+    "Dados **fictícios** para demonstração da ferramenta;",
+    "DF com aderência parcial entre realizado e orçado;"
+   ],
+   "destaque": "2026: 1ºT: — | 2ºT: — | 3ºT: — | 4ºT: —"
+  },
+  "fontes": "Exemplo",
+  "avisos": []
+ },
+ {
+  "titulo": "Performance - Frota EX100 Mina Exemplo - 6 equipamentos.",
+  "cabecalho": "Diretoria de Engenharia | Mineração, Pelotização e Processo",
+  "frota": "EX100",
+  "local": "Mina Exemplo",
+  "qtd_equipamentos": 6,
+  "indicador": "MTBF",
+  "indicador_titulo": "MTBF (h)",
+  "unidade": "h",
+  "grafico": {
+   "anos": [
+    {
+     "rotulo": "2024",
+     "valor": 58
+    },
+    {
+     "rotulo": "2025",
+     "valor": 61
+    }
+   ],
+   "meses": [
+    {
+     "rotulo": "Nov/25",
+     "realizado": 62,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Dez/25",
+     "realizado": 77,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Jan/26",
+     "realizado": 39,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Fev/26",
+     "realizado": 55,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Mar/26",
+     "realizado": 57,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Abr/26",
+     "realizado": 52,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Mai/26",
+     "realizado": 64,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Jun/26",
+     "realizado": 67,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Jul/26",
+     "realizado": 69,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Ago/26",
+     "realizado": 84,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Set/26",
+     "realizado": 64,
+     "orcado": 60
+    },
+    {
+     "rotulo": "Out/26",
+     "realizado": 43,
+     "orcado": 60
+    }
+   ],
+   "resumo": [
+    {
+     "rotulo": "YTD 26",
+     "valor": 60,
+     "tipo": "realizado"
+    },
+    {
+     "rotulo": "Acum. 12M",
+     "valor": 61,
+     "tipo": "realizado"
+    },
+    {
+     "rotulo": "ORC",
+     "valor": 60,
+     "tipo": "orcado"
+    },
+    {
+     "rotulo": "RT",
+     "valor": 100,
+     "tipo": "rt"
+    }
+   ]
+  },
+  "tabela": {
+   "colunas": [
+    "Nov/25",
+    "Dez/25",
+    "Jan/26",
+    "Fev/26",
+    "Mar/26",
+    "Abr/26",
+    "Mai/26",
+    "Jun/26",
+    "Jul/26",
+    "Ago/26",
+    "Set/26",
+    "Out/26",
+    "12M",
+    "YTD"
+   ],
+   "linhas": [
+    {
+     "tag": "EX101",
+     "horimetro": 49115,
+     "valores": [
+      40,
+      63,
+      52,
+      71,
+      38,
+      50,
+      84,
+      49,
+      38,
+      40,
+      53,
+      49,
+      52,
+      52
+     ],
+     "cores": [
+      "r",
+      "g",
+      "r",
+      "g",
+      "r",
+      "r",
+      "g",
+      "r",
+      "r",
+      "r",
+      "r",
+      "r",
+      "r",
+      "r"
+     ]
+    },
+    {
+     "tag": "EX102",
+     "horimetro": 53576,
+     "valores": [
+      46,
+      91,
+      41,
+      59,
+      46,
+      49,
+      115,
+      24,
+      25,
+      101,
+      61,
+      37,
+      58,
+      56
+     ],
+     "cores": [
+      "r",
+      "g",
+      "r",
+      "y",
+      "r",
+      "r",
+      "g",
+      "r",
+      "r",
+      "g",
+      "g",
+      "r",
+      "y",
+      "r"
+     ]
+    },
+    {
+     "tag": "EX103",
+     "horimetro": 24789,
+     "valores": [
+      39,
+      48,
+      52,
+      45,
+      76,
+      56,
+      57,
+      168,
+      152,
+      40,
+      62,
+      45,
+      70,
+      75
+     ],
+     "cores": [
+      "r",
+      "r",
+      "r",
+      "r",
+      "g",
+      "r",
+      "y",
+      "g",
+      "g",
+      "r",
+      "g",
+      "r",
+      "g",
+      "g"
+     ]
+    },
+    {
+     "tag": "EX104",
+     "horimetro": 53670,
+     "valores": [
+      71,
+      56,
+      42,
+      27,
+      47,
+      41,
+      28,
+      52,
+      72,
+      251,
+      144,
+      53,
+      74,
+      76
+     ],
+     "cores": [
+      "g",
+      "r",
+      "r",
+      "r",
+      "r",
+      "r",
+      "r",
+      "r",
+      "g",
+      "g",
+      "g",
+      "r",
+      "g",
+      "g"
+     ]
+    },
+    {
+     "tag": "EX105",
+     "horimetro": 20590,
+     "valores": [
+      27,
+      107,
+      11,
+      69,
+      37,
+      41,
+      77,
+      35,
+      78,
+      40,
+      32,
+      38,
+      49,
+      46
+     ],
+     "cores": [
+      "r",
+      "g",
+      "r",
+      "g",
+      "r",
+      "r",
+      "g",
+      "r",
+      "g",
+      "r",
+      "r",
+      "r",
+      "r",
+      "r"
+     ]
+    },
+    {
+     "tag": "EX106",
+     "horimetro": 45302,
+     "valores": [
+      150,
+      96,
+      38,
+      59,
+      100,
+      72,
+      24,
+      76,
+      51,
+      29,
+      31,
+      38,
+      64,
+      52
+     ],
+     "cores": [
+      "g",
+      "g",
+      "r",
+      "y",
+      "g",
+      "g",
+      "r",
+      "g",
+      "r",
+      "r",
+      "r",
+      "r",
+      "g",
+      "r"
+     ]
+    },
+    {
+     "tag": "Total",
+     "horimetro": 53670,
+     "valores": [
+      62,
+      77,
+      39,
+      55,
+      57,
+      52,
+      64,
+      67,
+      69,
+      84,
+      64,
+      43,
+      61,
+      60
+     ],
+     "cores": [
+      "g",
+      "g",
+      "r",
+      "r",
+      "y",
+      "r",
+      "g",
+      "g",
+      "g",
+      "g",
+      "g",
+      "r",
+      "g",
+      "g"
+     ]
+    }
+   ]
+  },
+  "nota": {
+   "itens": [
+    "Dados **fictícios** para demonstração da ferramenta;",
+    "MTBF com aderência parcial entre realizado e orçado;"
+   ],
+   "destaque": "2026: 1ºT: — | 2ºT: — | 3ºT: — | 4ºT: —"
+  },
+  "fontes": "Exemplo",
+  "avisos": []
+ }
+]

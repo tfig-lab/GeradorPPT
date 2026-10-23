@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gerador de PPT de Frota</title>
+<style>
+  :root {
+    --teal: #009287; --teal-esc: #007E79; --teal-claro: #E6F4F3;
+    --texto: #1F2A2A; --suave: #5F6B6B; --linha: #D5DEDD; --fundo: #F5F7F7; --card: #FFFFFF;
+    --r: #F7C7AC; --y: #F9F1A1; --g: #DAF2D0; --w: #FFFFFF;
+    --erro: #B3261E; --aviso-bg: #FFF7D6; --aviso-borda: #E8C95A;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--texto); background: var(--fundo); font-size: 14px; }
+  header { background: var(--teal); color: #fff; padding: 18px 24px; }
+  header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+  header p { margin: 4px 0 0; opacity: .9; font-size: 13px; }
+  main { max-width: 1280px; margin: 0 auto; padding: 20px 16px 80px; }
+  .card { background: var(--card); border: 1px solid var(--linha); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  h2 { font-size: 16px; margin: 0 0 12px; color: var(--teal-esc); }
+  .passo { display: inline-flex; width: 24px; height: 24px; border-radius: 50%; background: var(--teal); color: #fff; align-items: center; justify-content: center; font-size: 13px; margin-right: 8px; }
+  .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  label { display: block; font-size: 12px; color: var(--suave); margin-bottom: 4px; }
+  input[type=text], input[type=password], input[type=number], select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--linha); border-radius: 6px; font: inherit; background: #fff;
+  }
+  textarea { resize: vertical; min-height: 84px; }
+  .linha-flex { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+  button { font: inherit; border-radius: 6px; border: 1px solid var(--teal); background: #fff; color: var(--teal-esc); padding: 8px 14px; cursor: pointer; }
+  button:hover { background: var(--teal-claro); }
+  button.primario { background: var(--teal); color: #fff; }
+  button.primario:hover { background: var(--teal-esc); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.pequeno { padding: 4px 10px; font-size: 12px; }
+  .ajuda { font-size: 12px; color: var(--suave); margin-top: 6px; }
+  #zona { border: 2px dashed var(--teal); border-radius: 10px; padding: 34px 16px; text-align: center; background: var(--teal-claro); cursor: pointer; transition: background .15s; }
+  #zona.ativa { background: #C9EAE7; }
+  #zona strong { font-size: 16px; color: var(--teal-esc); }
+  #miniaturas { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 12px; }
+  .mini { border: 1px solid var(--linha); border-radius: 8px; overflow: hidden; background: #fff; font-size: 12px; position: relative; }
+  .mini img { width: 100%; height: 96px; object-fit: cover; object-position: top left; display: block; }
+  .mini .info { padding: 6px 8px; }
+  .mini .nome { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini .x { position: absolute; top: 4px; right: 4px; padding: 0 7px; background: rgba(255,255,255,.9); }
+  .status { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 11px; background: #EEE; }
+  .status.lendo { background: #DDEBFF; } .status.pronto { background: var(--g); } .status.erro { background: #F9D3D0; color: var(--erro); }
+  .ficha { border-left: 4px solid var(--teal); }
+  .ficha-topo { display: flex; justify-content: space-between; gap: 12px; align-items: start; flex-wrap: wrap; }
+  .ficha-topo h3 { margin: 0; font-size: 15px; }
+  .avisos { background: var(--aviso-bg); border: 1px solid var(--aviso-borda); border-radius: 6px; padding: 8px 12px; margin: 10px 0; font-size: 13px; }
+  .avisos ul { margin: 4px 0 0 18px; padding: 0; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: var(--teal-esc); font-weight: 600; padding: 4px 0; }
+  .print-original { max-width: 100%; border: 1px solid var(--linha); border-radius: 6px; margin-top: 8px; }
+  .tabela-wrap { overflow-x: auto; margin-top: 8px; }
+  table.edit { border-collapse: collapse; font-size: 12px; }
+  table.edit th { background: var(--teal); color: #fff; padding: 4px 6px; font-weight: 600; white-space: nowrap; }
+  table.edit td { border: 1px solid #C9D2D1; padding: 0; }
+  table.edit input { width: 52px; border: 0; padding: 4px; text-align: center; background: transparent; font: inherit; }
+  table.edit input.tag { width: 74px; text-align: left; }
+  table.edit input.hor { width: 64px; }
+  table.edit td.r { background: var(--r); } table.edit td.y { background: var(--y); } table.edit td.g { background: var(--g); } table.edit td.w { background: var(--w); }
+  table.edit tr.total td { font-weight: 700; }
+  .pinceis { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--suave); flex-wrap: wrap; margin-top: 10px; }
+  .pincel { width: auto; padding: 3px 9px; border: 1px solid #AAB; border-radius: 12px; background: #fff; color: var(--texto); font-size: 12px; }
+  .pincel.on { outline: 2px solid var(--teal); }
+  .pincel i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; border: 1px solid #999; vertical-align: -1px; }
+  .rodape-acoes { position: sticky; bottom: 0; background: rgba(245,247,247,.96); border-top: 1px solid var(--linha); padding: 12px 16px; display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+  .rodape-acoes .resumo { margin-right: auto; color: var(--suave); font-size: 13px; }
+  .erro-msg { color: var(--erro); font-size: 12px; }
+  .oculto { display: none !important; }
+  .chip { display: inline-block; background: var(--teal-claro); color: var(--teal-esc); padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 6px; }
+  @media (max-width: 640px) { header { padding: 14px 16px; } main { padding: 12px 12px 90px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Gerador de PPT de Frota</h1>
+  <p>Arraste os prints do BI, confira os dados lidos e baixe o PowerPoint com gráficos e tabelas editáveis.</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2><span class="passo">1</span>Configuração</h2>
+    <div class="grade">
+      <div>
+        <label for="fornecedor">Fornecedor</label>
+        <div class="linha-flex">
+          <select id="fornecedor" style="flex:1"></select>
+          <button id="btnNovoFornecedor" class="pequeno" title="Cadastrar fornecedor">+ Fornecedor</button>
+        </div>
+      </div>
+      <div>
+        <label for="periodo">Período (capa)</label>
+        <input id="periodo" type="text" placeholder="Outubro/2026">
+      </div>
+      <div>
+        <label for="chave">Chave da API do Claude</label>
+        <input id="chave" type="password" placeholder="sk-ant-..." autocomplete="off">
+        <div class="ajuda"><label style="display:inline"><input type="checkbox" id="lembrarChave"> lembrar neste navegador</label></div>
+      </div>
+      <div>
+        <label for="modelo">Modelo de leitura</label>
+        <select id="modelo"></select>
+      </div>
+    </div>
+    <div class="grade" style="margin-top:12px">
+      <div>
+        <label for="layout">Layout dos slides</label>
+        <select id="layout">
+          <option value="auto">Automático (DF + MTBF juntos em frotas pequenas)</option>
+          <option value="individual">Um slide por print</option>
+          <option value="combinado">DF + MTBF no mesmo slide sempre</option>
+        </select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <label style="display:inline;color:var(--texto)"><input type="checkbox" id="incluirCapa" checked> Incluir capa</label>
+        &nbsp;&nbsp;
+        <label style="display:inline;color:var(--texto)"><input type="checkbox" id="rotulosOrcado"> Valores na linha do orçado</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="passo">2</span>Prints do BI</h2>
+    <div id="zona" tabindex="0">
+      <strong>Arraste os prints aqui</strong><br>
+      <span class="ajuda">ou clique para escolher, ou cole com Ctrl+V (PNG ou JPG, um print por indicador)</span>
+      <input id="arquivos" type="file" accept="image/*" multiple class="oculto">
+    </div>
+    <div id="miniaturas"></div>
+    <div class="linha-flex" style="margin-top:12px">
+      <button id="btnLer" class="primario" disabled>Ler prints</button>
+      <button id="btnImportar" class="pequeno">Importar dados (.json)</button>
+      <button id="btnExemplo" class="pequeno">Carregar exemplo</button>
+      <input id="arqJson" type="file" accept="application/json,.json" multiple class="oculto">
+      <span id="msgLeitura" class="ajuda"></span>
+    </div>
+  </section>
+
+  <section id="secRevisao" class="oculto">
+    <h2 style="margin:24px 0 12px"><span class="passo">3</span>Confira os dados lidos</h2>
+    <p class="ajuda" style="margin-top:-6px">Corrija qualquer número direto na tabela. Para mudar a cor de uma célula, escolha um pincel e clique nas células.</p>
+    <div id="fichas"></div>
+  </section>
+</main>
+
+<div class="rodape-acoes">
+  <span class="resumo" id="resumo">Nenhum print lido ainda.</span>
+  <button id="btnExportar" class="pequeno" disabled>Salvar dados (.json)</button>
+  <button id="btnGerar" class="primario" disabled>Gerar PPT</button>
+</div>
+
+<script src="vendor/pptxgen.bundle.js"></script>
+<script src="js/config.js"></script>
+<script src="js/gerador.js"></script>
+<script src="js/extrator.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
