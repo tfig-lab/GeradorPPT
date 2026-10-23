@@ -16,11 +16,28 @@ window.CONFIG = {
     { id: "sandvik", nome: "Sandvik" }
   ],
 
-  // Modelos do Claude usados para ler os prints (o primeiro é o padrão)
-  MODELOS: [
-    { id: "claude-sonnet-5-5", nome: "Claude Sonnet 5.5 (recomendado)" },
-    { id: "claude-opus-5-5", nome: "Claude Opus 5.5 (mais preciso, mais caro)" },
-    { id: "claude-haiku-5-5", nome: "Claude Haiku 5.5 (mais rápido)" }
+  // Provedores de IA que leem os prints. Em cada um, o primeiro modelo é o padrão.
+  PROVEDORES: [
+    {
+      id: "claude", nome: "Claude (Anthropic)",
+      rotuloChave: "Chave da API do Claude", exemploChave: "sk-ant-api03-...",
+      linkChave: "https://console.anthropic.com/settings/keys",
+      modelos: [
+        { id: "claude-sonnet-5-5", nome: "Claude Sonnet 5.5 (recomendado)" },
+        { id: "claude-opus-5-5", nome: "Claude Opus 5.5 (mais preciso, mais caro)" },
+        { id: "claude-haiku-5-5", nome: "Claude Haiku 5.5 (mais rápido)" }
+      ]
+    },
+    {
+      id: "openai", nome: "GPT (OpenAI)",
+      rotuloChave: "Chave da API da OpenAI", exemploChave: "sk-proj-...",
+      linkChave: "https://platform.openai.com/api-keys",
+      modelos: [
+        { id: "gpt-6.1-sol", nome: "GPT-6.1 Sol (recomendado)" },
+        { id: "gpt-6-astra", nome: "GPT-6 Astra (mais preciso, mais caro)" },
+        { id: "gpt-6-luna", nome: "GPT-6 Luna (mais rápido)" }
+      ]
+    }
   ],
 
   // Quantos prints são lidos ao mesmo tempo

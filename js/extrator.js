@@ -1,5 +1,5 @@
 /*
- * Leitura dos prints do BI com a API do Claude (visão).
+ * Leitura dos prints do BI com IA de visão: Claude (Anthropic) ou GPT (OpenAI).
  * Cada imagem vira uma "ficha" JSON no formato esperado por gerador.js.
  */
 (function (root) {
@@ -129,40 +129,96 @@
     return f;
   }
 
-  function lerPrint(file, opc) {
-    return prepararImagem(file).then(function (img) {
-      var corpo = {
-        model: opc.modelo,
-        max_tokens: 16000,
-        temperature: 0,
-        messages: [{
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } },
-            { type: "text", text: PROMPT }
-          ]
-        }]
+  function respostaJSON(r) {
+    return r.text().then(function (t) {
+      var j; try { j = JSON.parse(t); } catch (e) { j = null; }
+      if (!r.ok) {
+        var msg = (j && j.error && (j.error.message || j.error.type)) || ("HTTP " + r.status);
+        var err = new Error(msg); err.status = r.status; throw err;
+      }
+      if (!j) throw new Error("Resposta inválida da API.");
+      return j;
+    });
+  }
+
+  // ---- Claude (Anthropic) ----
+  function chamarClaude(img, opc) {
+    var corpo = {
+      model: opc.modelo,
+      max_tokens: 16000,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: img.mediaType, data: img.data } },
+          { type: "text", text: PROMPT }
+        ]
+      }]
+    };
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": opc.chave,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify(corpo)
+    }).then(respostaJSON).then(function (j) {
+      return {
+        texto: (j.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join(""),
+        cortado: j.stop_reason === "max_tokens"
       };
-      return fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": opc.chave,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify(corpo)
-      }).then(function (r) {
-        return r.json().then(function (j) {
-          if (!r.ok) {
-            var msg = (j && j.error && j.error.message) || ("HTTP " + r.status);
-            throw new Error(msg);
-          }
-          var texto = (j.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join("");
-          var f = extrairJSON(texto);
-          if (j.stop_reason === "max_tokens") (f.avisos = f.avisos || []).push("Resposta cortada por tamanho: confira as últimas linhas.");
-          return validar(f, "data:" + img.mediaType + ";base64," + img.data);
-        });
+    });
+  }
+
+  // ---- GPT (OpenAI) ----
+  function chamarOpenAI(img, opc) {
+    var corpo = {
+      model: opc.modelo,
+      // modelos de raciocínio contam o raciocínio neste limite, por isso a folga
+      max_completion_tokens: 32000,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: PROMPT },
+          { type: "image_url", image_url: { url: "data:" + img.mediaType + ";base64," + img.data, detail: "high" } }
+        ]
+      }]
+    };
+    return fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "authorization": "Bearer " + opc.chave
+      },
+      body: JSON.stringify(corpo)
+    }).then(respostaJSON).then(function (j) {
+      var ch = (j.choices || [])[0] || {};
+      var conteudo = ch.message && ch.message.content;
+      if (Array.isArray(conteudo)) conteudo = conteudo.map(function (c) { return c.text || ""; }).join("");
+      if (ch.message && ch.message.refusal) throw new Error("O modelo recusou a leitura: " + ch.message.refusal);
+      return { texto: conteudo || "", cortado: ch.finish_reason === "length" };
+    });
+  }
+
+  var PROVEDORES = { claude: chamarClaude, openai: chamarOpenAI };
+
+  /**
+   * Lê um print.
+   * @param opc { provedor: "claude" | "openai", chave, modelo }
+   */
+  function lerPrint(file, opc) {
+    var chamar = PROVEDORES[opc.provedor || "claude"];
+    if (!chamar) return Promise.reject(new Error("Provedor desconhecido: " + opc.provedor));
+    return prepararImagem(file).then(function (img) {
+      return chamar(img, opc).then(function (res) {
+        var f;
+        try { f = extrairJSON(res.texto); }
+        catch (e) {
+          throw new Error(res.cortado ? "Resposta cortada por tamanho antes de terminar o JSON." : "Não foi possível interpretar a resposta (JSON).");
+        }
+        if (res.cortado) (f.avisos = f.avisos || []).push("Resposta cortada por tamanho: confira as últimas linhas.");
+        return validar(f, "data:" + img.mediaType + ";base64," + img.data);
       });
     });
   }

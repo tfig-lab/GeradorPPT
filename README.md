@@ -6,9 +6,11 @@ O PPT sai com **gráficos e tabelas nativos do PowerPoint** (editáveis, com os 
 
 ## Como usar
 
-1. Escolha o **fornecedor** e informe a **chave da API do Claude** (https://console.anthropic.com).
+1. Escolha o **fornecedor**, a **IA que lê os prints** (Claude ou GPT) e informe a chave da API correspondente:
+   - Claude: https://console.anthropic.com/settings/keys
+   - GPT (OpenAI): https://platform.openai.com/api-keys
 2. **Arraste os prints** do BI para a área indicada (ou cole com Ctrl+V). Um print por indicador: DF e MTBF de cada frota.
-3. Clique em **Ler prints**. Cada print é lido pelo Claude, que devolve título, gráfico, mapa de calor (valores e cores) e nota.
+3. Clique em **Ler prints**. Cada print é lido pela IA escolhida, que devolve título, gráfico, mapa de calor (valores e cores) e nota.
 4. **Confira os dados** na tela. Dá para corrigir qualquer número e repintar células do mapa de calor com os pincéis de cor. Os pontos que merecem atenção aparecem em amarelo (ex.: tabela com barra de rolagem, gráfico divergente da linha Total).
 5. Clique em **Gerar PPT** para baixar o arquivo.
 
@@ -26,12 +28,14 @@ Para rodar no próprio computador: `python -m http.server 8000` nesta pasta e ab
 
 ## Chave da API e privacidade
 
-- A página é estática: não existe servidor intermediário. A imagem vai direto do navegador para a API do Claude, usando a chave de quem está usando a ferramenta.
-- A chave só fica salva se a pessoa marcar "lembrar neste navegador" (fica no `localStorage` daquele navegador, nunca no repositório).
+- A página é estática: não existe servidor intermediário. A imagem vai direto do navegador para a API escolhida (Anthropic ou OpenAI), usando a chave de quem está usando a ferramenta.
+- A chave só fica salva se a pessoa marcar "lembrar neste navegador" (fica no `localStorage` daquele navegador, nunca no repositório). Cada provedor guarda a sua chave separadamente.
 - Se o repositório for público, qualquer pessoa pode abrir a página, mas sem uma chave própria ela não consegue ler prints. **Não coloque prints ou dados reais no repositório.** O botão "Carregar exemplo" usa dados fictícios (`exemplos/exemplo.json`).
 - Se preferir não distribuir chaves pessoais, a alternativa é um pequeno proxy (por exemplo um Cloudflare Worker) que guarda a chave da empresa e repassa a chamada; basta trocar a URL em `js/extrator.js`.
 
-Custo aproximado: cada print é uma chamada com uma imagem. O modelo pode ser escolhido na tela (Sonnet é o equilíbrio recomendado entre precisão e custo).
+Custo aproximado: cada print é uma chamada com uma imagem. O modelo pode ser escolhido na tela; o marcado como "recomendado" em cada provedor é o equilíbrio entre precisão e custo.
+
+Para trocar ou acrescentar modelos, edite a lista `PROVEDORES` em `js/config.js`. Os nomes dos modelos mudam com o tempo; se a API responder que o modelo não existe, atualize o `id` ali.
 
 ## Cadastrar fornecedores e ajustar o visual
 
@@ -47,8 +51,8 @@ Custo aproximado: cada print é uma chamada com uma imagem. O modelo pode ser es
 
 ```
 index.html          tela da ferramenta
-js/config.js        fornecedores, modelos, textos da capa
-js/extrator.js      leitura dos prints com a API do Claude (prompt + validação)
+js/config.js        fornecedores, provedores de IA e modelos, textos da capa
+js/extrator.js      leitura dos prints com Claude ou GPT (prompt + validação)
 js/gerador.js       montagem do .pptx (roda no navegador e no Node)
 js/app.js           interface: upload, revisão, geração
 vendor/             PptxGenJS 4.0.1 (biblioteca que escreve o .pptx)

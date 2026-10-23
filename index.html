@@ -96,9 +96,8 @@
         <input id="periodo" type="text" placeholder="Outubro/2026">
       </div>
       <div>
-        <label for="chave">Chave da API do Claude</label>
-        <input id="chave" type="password" placeholder="sk-ant-..." autocomplete="off">
-        <div class="ajuda"><label style="display:inline"><input type="checkbox" id="lembrarChave"> lembrar neste navegador</label></div>
+        <label for="provedor">IA que lê os prints</label>
+        <select id="provedor"></select>
       </div>
       <div>
         <label for="modelo">Modelo de leitura</label>
@@ -106,6 +105,12 @@
       </div>
     </div>
     <div class="grade" style="margin-top:12px">
+      <div>
+        <label for="chave" id="rotuloChave">Chave da API</label>
+        <input id="chave" type="password" placeholder="sk-..." autocomplete="off">
+        <div class="ajuda"><label style="display:inline"><input type="checkbox" id="lembrarChave"> lembrar neste navegador</label>
+          · <a id="linkChave" href="#" target="_blank" rel="noopener">criar chave</a></div>
+      </div>
       <div>
         <label for="layout">Layout dos slides</label>
         <select id="layout">

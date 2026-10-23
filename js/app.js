@@ -22,9 +22,25 @@
     var sf = $("#fornecedor"); sf.innerHTML = "";
     fornecedores().forEach(function (f) { var o = document.createElement("option"); o.value = f.id; o.textContent = f.nome; sf.appendChild(o); });
     var ult = lerLocal("gppt_fornecedor"); if (ult) sf.value = ult;
+    var sp = $("#provedor"); sp.innerHTML = "";
+    C.PROVEDORES.forEach(function (p) { var o = document.createElement("option"); o.value = p.id; o.textContent = p.nome; sp.appendChild(o); });
+    var up = lerLocal("gppt_provedor"); if (up && provedorPorId(up)) sp.value = up;
+    aplicarProvedor();
+  }
+  function provedorPorId(id) { return C.PROVEDORES.filter(function (p) { return p.id === id; })[0]; }
+  function provedorAtual() { return provedorPorId($("#provedor").value) || C.PROVEDORES[0]; }
+  // troca modelos, rótulo e chave salva conforme o provedor escolhido
+  function aplicarProvedor() {
+    var p = provedorAtual();
     var sm = $("#modelo"); sm.innerHTML = "";
-    C.MODELOS.forEach(function (m) { var o = document.createElement("option"); o.value = m.id; o.textContent = m.nome; sm.appendChild(o); });
-    var um = lerLocal("gppt_modelo"); if (um) sm.value = um;
+    p.modelos.forEach(function (m) { var o = document.createElement("option"); o.value = m.id; o.textContent = m.nome; sm.appendChild(o); });
+    var um = lerLocal("gppt_modelo_" + p.id); if (um && p.modelos.some(function (m) { return m.id === um; })) sm.value = um;
+    $("#rotuloChave").textContent = p.rotuloChave;
+    $("#chave").placeholder = p.exemploChave;
+    $("#linkChave").href = p.linkChave;
+    var ch = lerLocal("gppt_chave_" + p.id) || (p.id === "claude" ? lerLocal("gppt_chave") : "");
+    $("#chave").value = ch || "";
+    $("#lembrarChave").checked = !!ch;
   }
   function periodoPadrao() {
     var m = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -62,10 +78,14 @@
 
   // ---------- Leitura com a API ----------
   function lerTodos() {
+    var prov = provedorAtual();
     var chave = $("#chave").value.trim();
-    if (!chave) { $("#msgLeitura").textContent = "Informe a chave da API do Claude para ler os prints."; $("#chave").focus(); return; }
-    if ($("#lembrarChave").checked) salvarLocal("gppt_chave", chave); else salvarLocal("gppt_chave", "");
-    salvarLocal("gppt_modelo", $("#modelo").value);
+    if (!chave) { $("#msgLeitura").textContent = "Informe a " + prov.rotuloChave.toLowerCase() + " para ler os prints."; $("#chave").focus(); return; }
+    salvarLocal("gppt_chave_" + prov.id, $("#lembrarChave").checked ? chave : "");
+    if (prov.id === "claude") salvarLocal("gppt_chave", "");
+    salvarLocal("gppt_provedor", prov.id);
+    salvarLocal("gppt_modelo_" + prov.id, $("#modelo").value);
+    var modelo = $("#modelo").value;
     var fila = itens.filter(function (i) { return i.file && (i.status === "aguardando" || i.status === "erro"); });
     if (!fila.length) return;
     $("#btnLer").disabled = true;
@@ -77,7 +97,7 @@
         while (ativos < (C.LEITURAS_SIMULTANEAS || 3) && idx < fila.length) {
           (function (it) {
             ativos++; it.status = "lendo"; it.erro = ""; renderMiniaturas();
-            Extrator.lerPrint(it.file, { chave: chave, modelo: $("#modelo").value }).then(function (f) {
+            Extrator.lerPrint(it.file, { provedor: prov.id, chave: chave, modelo: modelo }).then(function (f) {
               it.ficha = f; it.status = "pronto";
             }).catch(function (e) {
               it.status = "erro"; it.erro = traduzErro(e);
@@ -95,8 +115,11 @@
 
   function traduzErro(e) {
     var m = String((e && e.message) || e);
-    if (/invalid x-api-key|authentication/i.test(m)) return "Chave da API inválida.";
+    if (/invalid x-api-key|authentication|incorrect api key|invalid api key/i.test(m) || (e && e.status === 401)) return "Chave da API inválida para o provedor escolhido.";
+    if (/quota|billing|credit/i.test(m)) return "Sem créditos ou cota na conta da API: " + m;
+    if (/model.*(not found|does not exist)|model_not_found/i.test(m)) return "Modelo não disponível para esta chave: " + m;
     if (/Failed to fetch|NetworkError/i.test(m)) return "Sem conexão com a API (rede ou bloqueio do navegador).";
+    if (/cortada/i.test(m)) return m + " Tente o modelo mais preciso ou um print menor.";
     if (/JSON/i.test(m)) return "Não foi possível interpretar a leitura. Tente de novo ou use outro modelo.";
     return m;
   }
@@ -321,7 +344,7 @@
   function iniciar() {
     montarSelects();
     $("#periodo").placeholder = periodoPadrao();
-    var ch = lerLocal("gppt_chave"); if (ch) { $("#chave").value = ch; $("#lembrarChave").checked = true; }
+    $("#provedor").onchange = aplicarProvedor;
 
     var zona = $("#zona"), inp = $("#arquivos");
     zona.onclick = function () { inp.click(); };
